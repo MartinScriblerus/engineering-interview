@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { ReactNode } from 'react';
 
 interface SpacerProps {
   size?: number | string; // spacing value, default 8px
