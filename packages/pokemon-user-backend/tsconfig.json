@@ -12,7 +12,9 @@
   ],
   "compilerOptions": {
     "esModuleInterop": true,
+    "useDefineForClassFields": false,  
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "moduleResolution": "NodeNext"
   }
 }

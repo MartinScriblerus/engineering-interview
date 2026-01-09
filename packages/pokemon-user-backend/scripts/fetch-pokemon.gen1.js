@@ -1,3 +1,7 @@
+// fetch-pokemon.gen1.js
+// Generates /data/pokemon.gen1.json by fetching from PokéAPI.
+// Run only if you need to regenerate the JSON.
+
 const fs = require('fs')
 const path = require('path')
 

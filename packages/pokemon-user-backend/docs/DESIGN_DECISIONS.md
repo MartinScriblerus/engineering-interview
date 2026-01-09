@@ -6,7 +6,7 @@
 ```
 pokemon-user-backend/
 ├── scripts/
-│   └── seed-pokemon.js
+│   └── fetch-pokemon.gen1.js
 ├── data/
 │   └── pokemon.gen1.json
 ├── src/
@@ -24,6 +24,7 @@ pokemon-user-backend/
 │       ├── db-config.service.ts
 │       ├── db.ts
 │       ├── data-source.ts
+│       ├── seed-pokemon.ts
 │       └── entities/
 │           ├── profile.entity.ts
 │           └── pokemon.entity.ts
@@ -55,7 +56,13 @@ pokemon-user-backend/
 Our database is seeded from a JSON files fetched from PokéAPI. This approach gives us a canonical data source, an established indexing strategy, and a clear version structure.
 #### To seed the database:
 ```bash
-pnpm nx run pokemon-user-backend:seed:pokemon
+pnpm run json:fetch
+```  
+This will update the JSON at /data/pokemon.gen1.json
+
+#### To seed the database with those Pokémon:
+```bash
+pnpm run db:seed
 ```  
 
 ### Swagger API & Endpoints

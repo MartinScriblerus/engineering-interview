@@ -5,7 +5,9 @@
   "scripts": {
     "pokemon-ui:serve": "nx run pokemon-ui:serve",
     "pokemon-user-backend:serve": "nx run pokemon-user-backend:serve",
-    "start": "concurrently --kill-others \"pnpm pokemon-ui:serve\" \"pnpm pokemon-user-backend:serve\""
+    "start": "concurrently --kill-others \"pnpm pokemon-ui:serve\" \"pnpm pokemon-user-backend:serve\"",
+    "db:seed": "pnpm exec ts-node packages/pokemon-user-backend/src/modules/database/seed-pokemon.ts",
+    "json:fetch": "node packages/pokemon-user-backend/scripts/fetch-pokemon.gen1.js"
   },
   "private": true,
   "dependencies": {
@@ -83,7 +85,7 @@
     "prettier": "^2.6.2",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
-    "typescript": "~5.5.2",
+    "typescript": "~5.5.4",
     "vite": "^5.0.0",
     "vite-plugin-dts": "~3.8.1",
     "vitest": "^1.3.1",

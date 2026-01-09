@@ -5,17 +5,12 @@
   "projectType": "application",
   "tags": [],
   "targets": {
-    "seed:pokemon": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "packages/pokemon-user-backend",
-        "command": "node scripts/seed-pokemon.js"
-      }
-    },
     "serve": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "options": {
         "buildTarget": "pokemon-user-backend:build",
         "runBuildTargetDependencies": false
