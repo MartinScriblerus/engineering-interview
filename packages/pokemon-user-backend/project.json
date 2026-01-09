@@ -5,6 +5,13 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "seed:pokemon": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/pokemon-user-backend",
+        "command": "node scripts/seed-pokemon.js"
+      }
+    },
     "serve": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",

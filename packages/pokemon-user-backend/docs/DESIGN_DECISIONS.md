@@ -5,6 +5,10 @@
 
 ```
 pokemon-user-backend/
+├── scripts/
+│   └── seed-pokemon.js
+├── data/
+│   └── pokemon.gen1.json
 ├── src/
 │   ├── modules/
 │   │   ├── profiles/
@@ -17,6 +21,9 @@ pokemon-user-backend/
 │   │       └── pokemon.service.ts
 │   └── database/
 │       ├── db.module.ts
+│       ├── db-config.service.ts
+│       ├── db.ts
+│       ├── data-source.ts
 │       └── entities/
 │           ├── profile.entity.ts
 │           └── pokemon.entity.ts
@@ -44,8 +51,12 @@ pokemon-user-backend/
 - **Need-to-have:** Observability — clear CRUD endpoints, well-documented input/output schemas, helpful error messages, auditable async transactions. Storage of 150 Pokémon is a hard scope marker. Emphasize functionality and robustness before increasing data volume or complexity.
 - **Nice-to-have:** Scalability — while high-volume or distributed systems are out of scope, design choices should allow future expansion beyond 150 Pokémon without major refactoring.
 
-### TypeORM & Migrations
-TODO: Summarize migration policy during the next set of dev tasks, which will focus on database seeding. 
+### Data Sources, DB Seeding, TypeORM, & Migrations
+Our database is seeded from a JSON files fetched from PokéAPI. This approach gives us a canonical data source, an established indexing strategy, and a clear version structure.
+#### To seed the database:
+```bash
+pnpm nx run pokemon-user-backend:seed:pokemon
+```  
 
 ### Swagger API & Endpoints
 Swagger is configured and can be found at the `/api/docs` endpoint from the local server. This setup is minimal for now and intended to assist feature development and improve observability.  
