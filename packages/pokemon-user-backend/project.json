@@ -8,7 +8,9 @@
     "serve": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "options": {
         "buildTarget": "pokemon-user-backend:build",
         "runBuildTargetDependencies": false
