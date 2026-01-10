@@ -2,6 +2,8 @@ import 'reflect-metadata'
 import { DataSource } from 'typeorm'
 import { PokemonEntity } from './entities/pokemon.entity'
 import { ProfileEntity } from './entities/profile.entity'
+import { TeamPokemonEntity } from './entities/team-pokemon.entity'
+import { TeamEntity } from './entities/team.entity'
 
 if (!process.env.POSTGRES_USER) {
   require('dotenv').config()
@@ -23,7 +25,10 @@ export const AppDataSource = new DataSource({
   password: required('POSTGRES_PASSWORD'),
   database: process.env.POSTGRES_DB ?? 'pokemon',
 
-  entities: [PokemonEntity, ProfileEntity],
-  migrations: ['dist/packages/pokemon-user-backend/src/modules/database/migrations/*.js'],
+  entities: [PokemonEntity, ProfileEntity, TeamPokemonEntity, TeamEntity],
+  migrations: [
+    'packages/pokemon-user-backend/src/modules/database/migrations/*.ts',
+    'dist/packages/pokemon-user-backend/src/modules/database/migrations/*.js'
+  ],
   synchronize: true,
 })

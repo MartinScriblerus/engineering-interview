@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { PokemonEntity } from './pokemon.entity';
+import { TeamEntity } from './team.entity';
 
 @Entity('profiles')
 export class ProfileEntity {
@@ -9,6 +9,12 @@ export class ProfileEntity {
   @Column({ type: 'varchar' })
   name: string;
 
-  @OneToMany(() => PokemonEntity, (pokemon) => pokemon.profile)
-  pokemons: PokemonEntity[];
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'boolean', default: false })
+  persistent: boolean;
+
+  @OneToMany(() => TeamEntity, (team) => team.profile)
+  createdTeams: TeamEntity[];
 }

@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { ProfileEntity } from './profile.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { TeamPokemonEntity } from './team-pokemon.entity';
 
 @Entity('pokemon')
 export class PokemonEntity {
@@ -12,6 +12,6 @@ export class PokemonEntity {
   @Column({ type: 'int' })
   pokedexNumber: number;
 
-  @ManyToOne(() => ProfileEntity, (profile) => profile.pokemons)
-  profile: ProfileEntity;
+  @OneToMany(() => TeamPokemonEntity, (tp) => tp.pokemon)
+  teamPokemons: TeamPokemonEntity[];
 }

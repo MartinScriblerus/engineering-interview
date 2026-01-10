@@ -7,7 +7,8 @@
     "pokemon-user-backend:serve": "nx run pokemon-user-backend:serve",
     "start": "concurrently --kill-others \"pnpm pokemon-ui:serve\" \"pnpm pokemon-user-backend:serve\"",
     "db:seed": "pnpm exec ts-node packages/pokemon-user-backend/src/modules/database/seed-pokemon.ts",
-    "json:fetch": "node packages/pokemon-user-backend/scripts/fetch-pokemon.gen1.js"
+    "json:fetch": "node packages/pokemon-user-backend/scripts/fetch-pokemon.gen1.js",
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run"
   },
   "private": true,
   "dependencies": {
