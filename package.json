@@ -8,7 +8,9 @@
     "start": "concurrently --kill-others \"pnpm pokemon-ui:serve\" \"pnpm pokemon-user-backend:serve\"",
     "db:seed": "pnpm exec ts-node packages/pokemon-user-backend/src/modules/database/seed-pokemon.ts",
     "json:fetch": "node packages/pokemon-user-backend/scripts/fetch-pokemon.gen1.js",
-    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run"
+    "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d packages/pokemon-user-backend/src/modules/database/data-source.ts",
+    "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -d packages/pokemon-user-backend/src/modules/database/data-source.ts",
+    "migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d packages/pokemon-user-backend/src/modules/database/data-source.ts"
   },
   "private": true,
   "dependencies": {
