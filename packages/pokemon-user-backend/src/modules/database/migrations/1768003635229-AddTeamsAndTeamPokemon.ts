@@ -4,44 +4,27 @@ export class AddTeamsAndTeamPokemon1768003635229 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
 
-      await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
 
-      // 1️⃣ Create 'teams' table
-      await queryRunner.createTable(
-          new Table({
-              name: 'teams',
-              columns: [
-                  {
-                      name: 'id',
-                      type: 'uuid',
-                      isPrimary: true,
-                      isGenerated: true,
-                      generationStrategy: 'uuid',
-                  },
-                  {
-                      name: 'name',
-                      type: 'varchar',
-                      isNullable: false,
-                  },
-                  {
-                      name: 'profileId',
-                      type: 'uuid',
-                      isNullable: false,
-                  },
-                  {
-                      name: 'createdAt',
-                      type: 'timestamptz',
-                      default: 'NOW()',
-                  },
-                  {
-                      name: 'persistent',
-                      type: 'boolean',
-                      default: false,
-                  },
-              ],
-          }),
-          true
-      );
+    // 1️⃣ Add persistent column to profiles if it doesn't exist
+    await queryRunner.query(`
+        ALTER TABLE profiles
+        ADD COLUMN IF NOT EXISTS persistent boolean DEFAULT false
+    `);
+
+    // 2️⃣ Create 'teams' table
+    await queryRunner.createTable(
+      new Table({
+        name: 'teams',
+        columns: [
+          { name: 'id', type: 'uuid', isPrimary: true, isGenerated: true, generationStrategy: 'uuid' },
+          { name: 'name', type: 'varchar', isNullable: false },
+          { name: 'profileId', type: 'uuid', isNullable: false },
+          { name: 'createdAt', type: 'timestamptz', default: 'NOW()' },
+        ],
+      }),
+      true
+    );
 
       // 2️⃣ Add foreign key from teams.profileId → profiles.id
       await queryRunner.createForeignKey(
