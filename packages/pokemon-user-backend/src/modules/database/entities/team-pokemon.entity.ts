@@ -6,11 +6,11 @@ import { PokemonEntity } from './pokemon.entity';
 @Unique(['team', 'pokemon'])
 export class TeamPokemonEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => TeamEntity, (team) => team.teamPokemons, { onDelete: 'CASCADE' })
-  team: TeamEntity;
+  team!: TeamEntity;
 
   @ManyToOne(() => PokemonEntity, (pokemon) => pokemon.teamPokemons, { onDelete: 'CASCADE' })
-  pokemon: PokemonEntity;
+  pokemon!: PokemonEntity;
 }

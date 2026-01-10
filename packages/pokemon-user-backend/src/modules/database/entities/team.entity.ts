@@ -5,15 +5,15 @@ import { TeamPokemonEntity } from './team-pokemon.entity';
 @Entity('teams')
 export class TeamEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar' })
-  name: string;
+  name!: string;
 
   @ManyToOne(() => ProfileEntity, (profile) => profile.createdTeams, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'profileId' })
-  profile: ProfileEntity;
+  profile!: ProfileEntity;
 
   @OneToMany(() => TeamPokemonEntity, (tp) => tp.team)
-  teamPokemons: TeamPokemonEntity[];
+  teamPokemons!: TeamPokemonEntity[];
 }

@@ -4,14 +4,14 @@ import { TeamPokemonEntity } from './team-pokemon.entity';
 @Entity('pokemon')
 export class PokemonEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar' })
-  name: string;
+  name!: string;
 
   @Column({ type: 'int' })
-  pokedexNumber: number;
+  pokedexNumber!: number;
 
   @OneToMany(() => TeamPokemonEntity, (tp) => tp.pokemon)
-  teamPokemons: TeamPokemonEntity[];
+  teamPokemons!: TeamPokemonEntity[];
 }

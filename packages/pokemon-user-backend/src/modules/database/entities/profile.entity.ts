@@ -4,17 +4,17 @@ import { TeamEntity } from './team.entity';
 @Entity('profiles')
 export class ProfileEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar' })
-  name: string;
+  name!: string;
 
   @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ type: 'boolean', default: false })
-  persistent: boolean;
+  persistent!: boolean;
 
   @OneToMany(() => TeamEntity, (team) => team.profile)
-  createdTeams: TeamEntity[];
+  createdTeams!: TeamEntity[];
 }
