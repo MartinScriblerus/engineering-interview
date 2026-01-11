@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn } from 'typeorm';
 import { ProfileEntity } from './profile.entity';
 import { TeamPokemonEntity } from './team-pokemon.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('teams')
 export class TeamEntity {
@@ -16,4 +17,11 @@ export class TeamEntity {
 
   @OneToMany(() => TeamPokemonEntity, (tp) => tp.team)
   teamPokemons!: TeamPokemonEntity[];
+
+  @CreateDateColumn({ name: 'createdAt' })
+  createdAt: Date;
+
+  @ApiProperty({ type: 'number', description: 'Number of times profile selected' })
+  @Column({ type: 'int', default: 0 })
+  selectedCount!: number;
 }

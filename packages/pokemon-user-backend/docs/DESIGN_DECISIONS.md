@@ -4,34 +4,54 @@
 ### Module / Folder Structure
 
 pokemon-user-backend/
-├── scripts/
-│ └── fetch-pokemon.gen1.js
+├── .env
 ├── data/
 │ └── pokemon.gen1.json
+├── docs/
+│ └── DESIGN_DECISIONS.md
+├── project.json
+├── scripts/
+│ └── fetch-pokemon.gen1.js
 ├── src/
-│ ├── modules/
+│ ├── main.spec.ts
+│ ├── main.ts
+│ └── modules/
+│ ├── app/
+│ │ ├── app.module.ts
+│ │ ├── pokemon/
+│ │ │ ├── pokemon.controller.ts
+│ │ │ ├── pokemon.module.ts
+│ │ │ └── pokemon.service.ts
 │ │ ├── profiles/
-│ │ │ ├── profiles.module.ts
 │ │ │ ├── profiles.controller.ts
+│ │ │ ├── profiles.module.ts
 │ │ │ └── profiles.service.ts
-│ │ └── pokemon/
-│ │ ├── pokemon.module.ts
-│ │ ├── pokemon.controller.ts
-│ │ └── pokemon.service.ts
+│ │ ├── team-pokemons/
+│ │ │ ├── team-pokemons.controller.ts
+│ │ │ ├── team-pokemons.module.ts
+│ │ │ └── team-pokemons.service.ts
+│ │ └── teams/
+│ │ ├── teams.controller.ts
+│ │ ├── teams.module.ts
+│ │ └── teams.service.ts
+│ ├── cache/
+│ │ ├── cache.module.ts
+│ │ ├── cache.service.ts
+│ │ └── index.ts
 │ └── database/
-│ ├── db.module.ts
-│ ├── db-config.service.ts
-│ ├── db.ts
 │ ├── data-source.ts
+│ ├── db-config.service.ts
+│ ├── db.module.ts
+│ ├── db.ts
 │ ├── seed-pokemon.ts
-│ └── entities/
-│ ├── profile.entity.ts
-│ ├── team.entity.ts
-│ ├── team-pokemon.entity.ts
-│ └── pokemon.entity.ts
-└── docs/
-├── ARCHITECTURE.md
-└── DESIGN_DECISIONS.md
+│ ├── entities/
+│ │ ├── pokemon.entity.ts
+│ │ ├── profile.entity.ts
+│ │ ├── team-pokemon.entity.ts
+│ │ └── team.entity.ts
+│ └── migrations/
+│ ├── 1768003635229-AddTeamsAndTeamPokemon.ts
+│ └── 1768080422974-AddPopularityAndTimestamps.ts
 
 
 ## DATABASE DESIGN DECISIONS (updated)

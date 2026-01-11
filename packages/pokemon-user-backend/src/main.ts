@@ -4,7 +4,7 @@
  */
 
 import 'reflect-metadata';
-import { Logger } from '@nestjs/common';
+import { ConsoleLogger, Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { startDatabase } from './modules/database/db';
@@ -18,7 +18,9 @@ async function bootstrap() {
   });
 
   await startDatabase();
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+  logger: new ConsoleLogger(),
+});
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
   const port = Number(process.env.PORT ?? 3000);
