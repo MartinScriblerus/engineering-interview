@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { TeamEntity } from './team.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('profiles')
 export class ProfileEntity {
@@ -17,4 +18,8 @@ export class ProfileEntity {
 
   @OneToMany(() => TeamEntity, (team) => team.profile)
   createdTeams!: TeamEntity[];
+
+  @ApiProperty({ type: 'number', description: 'Number of times profile selected' })
+  @Column({ type: 'int', default: 0 })
+  selectedCount!: number;
 }

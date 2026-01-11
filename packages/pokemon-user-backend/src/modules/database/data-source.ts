@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import 'reflect-metadata'
 import { DataSource } from 'typeorm'
 import { PokemonEntity } from './entities/pokemon.entity'
@@ -30,5 +31,5 @@ export const AppDataSource = new DataSource({
     'packages/pokemon-user-backend/src/modules/database/migrations/*.ts',
     'dist/packages/pokemon-user-backend/src/modules/database/migrations/*.js'
   ],
-  synchronize: true,
+  synchronize: false,
 })

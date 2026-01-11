@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { PokemonEntity } from './entities/pokemon.entity';
 import { ProfileEntity } from './entities/profile.entity';
+import { TeamEntity } from './entities/team.entity';
+import { TeamPokemonEntity } from './entities/team-pokemon.entity';
 
 @Injectable()
 export class DbConfigService {
@@ -33,9 +35,8 @@ export class DbConfigService {
       username,
       password,
       database,
-      entities: [ProfileEntity, PokemonEntity],
-      // disable auto-sync in production — use migrations
-      synchronize: process.env.NODE_ENV === 'test' ? true : false,
+      entities: [ProfileEntity, PokemonEntity, TeamEntity, TeamPokemonEntity],
+        synchronize: false,
     };
     return opts;
   }
