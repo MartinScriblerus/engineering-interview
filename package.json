@@ -59,6 +59,8 @@
     "@nx/web": "19.5.7",
     "@nx/webpack": "19.5.7",
     "@playwright/test": "^1.36.0",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/react": "^10.1.11",
     "@swc-node/register": "~1.9.1",
     "@swc/cli": "~0.3.12",
     "@swc/core": "~1.5.7",

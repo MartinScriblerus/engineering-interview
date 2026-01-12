@@ -19,8 +19,30 @@ async function bootstrap() {
 
   await startDatabase();
   const app = await NestFactory.create(AppModule, {
-  logger: new ConsoleLogger(),
-});
+    logger: new ConsoleLogger(),
+  });
+
+  app.enableCors({
+    origin: ['http://localhost:4200'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    credentials: true,
+  });
+
+  // Fallback preflight handler — ensures OPTIONS gets answered with CORS headers
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.use((req: any, res: any, next: any) => {
+    const allowedOrigin = 'http://localhost:4200';
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    next();
+  });  
+
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
   const port = Number(process.env.PORT ?? 3000);

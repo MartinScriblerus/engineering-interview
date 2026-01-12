@@ -1,4 +1,4 @@
-import { Controller, Get, Param, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, ParseUUIDPipe, Post, Body, Delete } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { PinoLogger } from 'nestjs-pino';
 import { ApiTags, ApiParam, ApiOkResponse, ApiNotFoundResponse } from '@nestjs/swagger';
@@ -43,5 +43,17 @@ export class ProfilesController {
     }
 
     return teams;
+  }
+
+  @Post()
+  @ApiOkResponse({ description: 'Create a new profile' })
+  async createProfile(@Body('name') name: string) {
+    return this.profilesService.createProfile(name);
+  }
+
+  @Delete(':profileId')
+  @ApiOkResponse({ description: 'Delete a profile by ID' })
+  async deleteProfile(@Param('profileId', new ParseUUIDPipe()) profileId: string) {
+    return this.profilesService.deleteProfile(profileId);
   }
 }
