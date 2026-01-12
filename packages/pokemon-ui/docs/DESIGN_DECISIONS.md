@@ -14,43 +14,50 @@ This repository will contain ** specific implementations ** for Pokémon-UI. See
 ### Module / Folder Structure
 ```
 packages/pokemon-ui/
+├── .eslintrc.json
 ├── index.html
 ├── project.json
+├── public/
+├── docs/
+│   └── DESIGN_DECISIONS.md
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.spec.json
 ├── vite.config.ts
-├── docs/
-│   └── DESIGN_DECISIONS.md
-├── public/
-├── src/
-│   ├── main.tsx
-│   ├── app/
-│   │   ├── app.spec.tsx
-│   │   ├── app.tsx
-│   │   ├── nx-welcome.tsx
-│   │   ├── providers.tsx
-│   │   └── router.tsx
-│   ├── assets/
-│   ├── components/
-│   │   ├── history-dashboard/
-│   │   │   └── HistoryDashboard.tsx
-│   │   ├── home/
-│   │   │   └── Home.tsx
-│   │   ├── profile-selection/
-│   │   │   └── ProfileSelection.tsx
-│   │   ├── team-selection/
-│   │   │   └── TeamSelection.tsx
-│   │   └── layout/
-│   │       └── AppFrame.tsx
-│   ├── contexts/
-│   │   └── MainContext.tsx
-│   └── utils/
-│       utils/
-│        ├── portal.ts
-│        ├── api.ts
-│        └── helpers.ts
-└── README.md (optional)
+└── src/
+    ├── emotion.d.ts
+    ├── main.tsx
+    ├── theme.ts
+    ├── app/
+    │   ├── app.spec.tsx
+    │   ├── app.tsx
+    │   ├── nx-welcome.tsx
+    │   ├── providers.tsx
+    │   └── router.tsx
+    ├── assets/
+    ├── components/
+    │   ├── history-dashboard/
+    │   │   └── HistoryDashboard.tsx
+    │   ├── home/
+    │   │   └── Home.tsx
+    │   ├── profile-selection/
+    │   │   └── ProfileSelection.tsx
+    │   ├── team-creation/
+    │   │   ├── PokemonSelector.tsx
+    │   │   ├── ProfileDropdown.tsx
+    │   │   ├── TeamDropdown.tsx
+    │   │   └── TeamEditor.tsx
+    │   └── team-selection/
+    │       └── TeamSelection.tsx
+    ├── contexts/
+    │   └── MainContext.tsx
+    ├── hooks/
+    │   └── use-crud.ts
+    ├── styles/
+    │   └── global.css
+    └── utils/
+        ├── api.ts
+        └── profileContext.ts
 ```
 
 ### Key Components:
@@ -60,5 +67,10 @@ packages/pokemon-ui/
 - HistoryDashboard – view previously created teams
 
 ### Design Goals
-- **Need-to-have:** Users must be able to create teams of up to 6 Pokémon. UI ensures semantic clarity for profile selection, team selection, and Pokémon selection. Styling is minimal, focusing on functional layout and accessibility.
+- **Need-to-have:** Users must be able to create teams of up to 6 Pokémon. UI communicates clearly the current profile, team, and selected Pokémon, preventing invalid selections. Styling is minimal, focusing on functional layout and accessibility.
 - **Nice-to-have:** Ease-of-use enhancements, e.g., search-enabled dropdowns for Pokémon and Profiles to quickly find options. This improves the UX without impacting core functionality.
+
+### Usage Principles
+- Feature-specific components should compose atomic primitives from the UI System rather than implementing custom base components.
+- Avoid embedding business logic in low-level components; domain logic lives in contexts, hooks, or higher-level containers.
+- Ensure accessibility and consistent styling through shared UI System primitives and theme.
