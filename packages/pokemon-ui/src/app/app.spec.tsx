@@ -10,6 +10,6 @@ describe('App', () => {
 
   it('should have a greeting as the title', () => {
     const { getByText } = render(<App />);
-    expect(getByText(/Welcome pokemon-ui/gi)).toBeTruthy();
+    expect(getByText(/Pokémon Team Builder/gi)).toBeTruthy();
   });
 });
