@@ -3,7 +3,7 @@ import { ProfileEntity } from "../../database/entities/profile.entity";
 import { Repository } from "typeorm";
 import { LocalCacheService } from "../../cache";
 import { PinoLogger } from "nestjs-pino";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { TeamEntity } from "../../database/entities/team.entity";
 
 @Injectable()
@@ -62,5 +62,33 @@ export class ProfilesService {
     this.logger.info('Cached all profiles for 2 hours');
 
     return profiles;
+  }
+
+  async createProfile(name: string) {
+    const profile = this.profileRepo.create({ name });
+    const saved = await this.profileRepo.save(profile);
+
+    // Invalidate cached profile list so subsequent GET /profiles returns fresh data
+    this.cache.delete('allProfiles');
+    this.logger.info({ profileId: saved.id }, 'Created profile and invalidated allProfiles cache');
+
+    return saved;
+  }
+
+  // New: delete a profile by id (useful while testing)
+  async deleteProfile(profileId: string): Promise<{ deleted: boolean; profileId: string }> {
+    const profile = await this.profileRepo.findOne({ where: { id: profileId } });
+    if (!profile) {
+      throw new NotFoundException(`Profile ${profileId} not found`);
+    }
+
+    await this.profileRepo.remove(profile);
+
+    // invalidate related caches
+    this.cache.delete('allProfiles');
+    this.cache.delete(`profile:${profileId}:teams`);
+
+    this.logger.info({ profileId }, 'Deleted profile');
+    return { deleted: true, profileId };
   }
 }

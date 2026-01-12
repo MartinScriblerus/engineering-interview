@@ -9,6 +9,7 @@ type MainContextType = {
   toggleProfiles: () => void;
   isPokemonsOpen: boolean;
   togglePokemons: () => void;
+  tryGetTeamsSelection: (nameOrId: string, action: string, id?: string) => void;
 };
 
 const MainContext = createContext<MainContextType | undefined>(undefined);
@@ -26,6 +27,20 @@ export const MainProvider = ({ children }: MainProviderProps) => {
   const toggleProfiles = () => setIsProfilesOpen((prev) => !prev);
   const togglePokemons = () => setIsPokemonsOpen((prev) => !prev);
 
+  // New helper: an example implementation that stores the selected profile and opens the profiles pane.
+  // You can customize this to fetch teams, navigate, or open a modal instead.
+  const tryGetTeamsSelection = (nameOrId: string, action: string, id?: string) => {
+    console.log('[MainContext] tryGetTeamsSelection', { nameOrId, action, id });
+    // Prefer explicit id when provided
+    if (id) {
+      setSelectedPortfolio(id);
+    } else {
+      // fallback to the provided identifier (could be name or id)
+      setSelectedPortfolio(nameOrId);
+    }
+    setIsProfilesOpen(true);
+  };
+
   const value: MainContextType = {
     // domain
     selectedPokemon,
@@ -37,6 +52,7 @@ export const MainProvider = ({ children }: MainProviderProps) => {
     isPokemonsOpen,
     toggleProfiles,
     togglePokemons,
+    tryGetTeamsSelection,
   };
 
   return <MainContext.Provider value={value}>{children}</MainContext.Provider>;

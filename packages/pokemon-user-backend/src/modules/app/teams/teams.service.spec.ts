@@ -1,6 +1,10 @@
 import { describe, it, beforeEach, expect, vi } from 'vitest';
+import { Repository } from 'typeorm';
 import { TeamsService } from './teams.service';
 import { LocalCacheService } from '../../cache/cache.service';
+import { TeamEntity } from '../../database/entities/team.entity';
+import { ProfileEntity } from '../../database/entities/profile.entity';
+import { TeamPokemonEntity } from '../../database/entities/team-pokemon.entity';
 
 describe('TeamsService', () => {
   let service: TeamsService;
@@ -25,12 +29,31 @@ describe('TeamsService', () => {
       findOne: vi.fn().mockResolvedValue({ id: 't1', name: 'Team 1' }),
     };
 
+    const mockProfileRepo = {
+      findOne: vi.fn().mockResolvedValue({ id: 'p1', name: 'Profile 1' }),
+    };
+
+    const mockTeamPokemonRepo = {
+      create: vi.fn(),
+      save: vi.fn(),
+    };
+
     mockCache = {
       get: vi.fn(),
       set: vi.fn(),
+      delete: vi.fn(),
     } as unknown as LocalCacheService;
 
-    service = new TeamsService(mockRepo, mockCache, { info: vi.fn() } as any);
+    const mockLogger = { info: vi.fn(), error: vi.fn() } as any;
+
+    // Cast each object to the Repository<T> type the service expects
+    service = new TeamsService(
+      mockRepo as unknown as Repository<TeamEntity>,
+      mockProfileRepo as unknown as Repository<ProfileEntity>,
+      mockTeamPokemonRepo as unknown as Repository<TeamPokemonEntity>,
+      mockCache,
+      mockLogger
+    );
   });
 
   it('getAllTeams returns teams via query builder', async () => {
