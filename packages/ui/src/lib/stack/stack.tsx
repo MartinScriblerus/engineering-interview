@@ -6,7 +6,7 @@ type ScrollOption = 'none' | 'vertical' | 'horizontal' | 'both';
 
 interface StackProps {
   children: ReactNode;
-  direction?: 'row' | 'column'; // default: column
+  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse'; // default: column
   spacing?: number | string;
   align?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
   justify?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
@@ -30,7 +30,7 @@ interface StackProps {
 const toCssSize = (v?: number | string) => (v === undefined ? undefined : typeof v === 'number' ? `${v}px` : v);
 
 const StyledStack = styled.div<{
-  $direction?: 'row' | 'column';
+  $direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   $spacing?: number | string;
   $align?: StackProps['align'];
   $justify?: StackProps['justify'];

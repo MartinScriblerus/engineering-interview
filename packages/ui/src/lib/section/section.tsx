@@ -7,7 +7,7 @@ interface StyledSectionProps {
   $padding?: string;
   $radius?: string;
   $gap?: string;
-  $direction?: 'row' | 'column';
+  $direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   $wrap?: boolean;
   $center?: boolean;
 }
@@ -43,7 +43,7 @@ interface SectionProps {
   padding?: string;
   radius?: string;
   gap?: string;
-  direction?: 'row' | 'column';
+  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   wrap?: boolean;
   center?: boolean;
 }

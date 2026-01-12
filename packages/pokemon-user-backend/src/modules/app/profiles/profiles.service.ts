@@ -3,8 +3,9 @@ import { ProfileEntity } from "../../database/entities/profile.entity";
 import { Repository } from "typeorm";
 import { LocalCacheService } from "../../cache";
 import { PinoLogger } from "nestjs-pino";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { TeamEntity } from "../../database/entities/team.entity";
+import { signPayload } from '../../../utils/profileToken';
 
 @Injectable()
 export class ProfilesService {
@@ -39,7 +40,6 @@ export class ProfilesService {
     this.cache.set(cacheKey, teams, TTL_2_HOURS);
     this.logger.info({ profileId, ttl: TTL_2_HOURS }, 'Cached profile teams for 2 hours');
 
-
     return teams;
   }
   
@@ -64,7 +64,44 @@ export class ProfilesService {
     return profiles;
   }
 
+   /**
+   * Record that a profile was selected by a visitor.
+   * - Returns true when the increment succeeded (best-effort)
+   * - Returns false for invalid id or on error (does not throw)
+   */
+  async recordProfileSelection(profileId: string): Promise<boolean> {
+    if (!profileId) return false;
+
+    try {
+      // Ensure profile exists (avoid incrementing non-existent rows)
+      const profile = await this.profileRepo.findOne({ where: { id: profileId } });
+      if (!profile) {
+        return false;
+      }
+
+      // Atomic increment of selectedCount
+      await this.profileRepo.increment({ id: profileId }, 'selectedCount', 1);
+      return true;
+    } catch (err) {
+      try {
+        this.logger.error({ err, profileId }, 'recordProfileSelection failed');
+      } catch (e) {
+        // swallow logger errors
+        // eslint-disable-next-line no-console
+        console.error('recordProfileSelection error', err);
+      }
+      return false;
+    }
+  }
+
   async createProfile(name: string) {
+    // Defensive: do not allow duplicate profile names for visitor flow
+    // (database currently does not enforce uniqueness; return Conflict to client)
+    const existing = await this.profileRepo.findOne({ where: { name } });
+    if (existing) {
+      throw new ConflictException('Profile name already exists');
+    }
+
     const profile = this.profileRepo.create({ name });
     const saved = await this.profileRepo.save(profile);
 
@@ -72,7 +109,12 @@ export class ProfilesService {
     this.cache.delete('allProfiles');
     this.logger.info({ profileId: saved.id }, 'Created profile and invalidated allProfiles cache');
 
-    return saved;
+    // create a short-lived token (2 hours)
+    const secret = process.env.PROFILE_TOKEN_SECRET ?? 'dev-secret';
+    const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours in seconds
+    const token = signPayload({ id: saved.id, createdAt: saved.createdAt, exp: expiresAt }, secret);
+
+    return { profile: saved, token };
   }
 
   // New: delete a profile by id (useful while testing)

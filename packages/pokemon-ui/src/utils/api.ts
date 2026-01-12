@@ -44,3 +44,15 @@ export const createTeam = (payload: { name: string; profileId: string; pokemonId
 // Get human-readable pokemon names for a team
 export const getTeamPokemonNames = (teamId: string) =>
   api.get(`/teams/${teamId}/pokemon-names`);
+
+// Record that a visitor selected a team (explicit user action)
+export const recordTeamSelection = (teamId: string) =>
+  api.post(`/teams/${teamId}/select`);
+
+// Record that a visitor selected a profile (explicit user action)
+export const recordProfileSelection = (profileId: string) =>
+  api.post(`/profiles/${profileId}/select`);
+
+// Record that a visitor selected a pokemon (explicit user action)
+export const recordPokemonSelection = (pokemonId: string) =>
+  api.post(`/pokemon/${pokemonId}/select`);

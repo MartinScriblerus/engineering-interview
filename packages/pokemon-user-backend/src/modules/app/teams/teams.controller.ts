@@ -34,6 +34,13 @@ export class TeamsController {
     return this.teamsService.createTeam(dto);
   }
 
+  @Post(':teamId/select')
+  @ApiOkResponse({ description: 'Record team selection (visitor click)' })
+  async selectTeam(@Param('teamId', new ParseUUIDPipe()) teamId: string) {
+    const ok = await this.teamsService.recordTeamSelection(teamId);
+    return { ok };
+  }
+
   @Patch(':teamId')
   @ApiOkResponse({ description: 'Update an existing team' })
   async updateTeam(@Param('teamId', new ParseUUIDPipe()) teamId: string, @Body() update: UpdateTeamDto) {
