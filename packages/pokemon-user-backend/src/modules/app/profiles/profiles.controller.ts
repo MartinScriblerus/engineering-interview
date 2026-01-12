@@ -51,6 +51,13 @@ export class ProfilesController {
     return this.profilesService.createProfile(name);
   }
 
+  // profiles.controller.ts
+  @Post(':profileId/select')
+  async selectProfile(@Param('profileId', new ParseUUIDPipe()) profileId: string) {
+    const ok = await this.profilesService.recordProfileSelection(profileId);
+    return { ok };
+  }
+
   @Delete(':profileId')
   @ApiOkResponse({ description: 'Delete a profile by ID' })
   async deleteProfile(@Param('profileId', new ParseUUIDPipe()) profileId: string) {

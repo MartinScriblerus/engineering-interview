@@ -31,4 +31,15 @@ export class PokemonService {
 
     return pokemon;
   }
+
+  async recordPokemonSelection(pokemonId: string): Promise<boolean> {
+    if (!pokemonId) return false;
+    try {
+      await this.pokemonRepo.increment({ id: pokemonId }, 'selectedCount', 1);
+      return true;
+    } catch (err) {
+      this.logger.error({ err, pokemonId }, 'recordPokemonSelection failed');
+      return false;
+    }
+  }
 }

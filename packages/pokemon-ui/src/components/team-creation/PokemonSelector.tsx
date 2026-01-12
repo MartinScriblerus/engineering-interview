@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Panel, Header, Typography, Stack, Button } from 'ui';
-import { getPokemon } from '../../utils/api';
+import { getPokemon, recordPokemonSelection } from '../../utils/api';
 
 type Props = {
   selected: string[]; // pokemon ids
@@ -19,6 +19,18 @@ export const PokemonSelector: React.FC<Props> = ({ selected, onChange }) => {
     else onChange([...selected, id]);
   };
 
+  const onPokemonClick = async (pokemonId: string) => {
+    // update local UI selection immediately
+    toggle(pokemonId);
+
+    // then record selection (best-effort)
+    try {
+      await recordPokemonSelection(pokemonId);
+    } catch (err) {
+      console.warn('recordPokemonSelection failed', err);
+    }
+  };
+
   return (
     <Panel background="surface" rounded={false}>
       <Stack background="pokemonPrimary" direction="column" spacing="4px" scroll="vertical" maxHeight={260} paddingTop={12}>
@@ -28,7 +40,7 @@ export const PokemonSelector: React.FC<Props> = ({ selected, onChange }) => {
             return (
               <Button
                 key={p.id}
-                onClick={() => toggle(p.id)}
+                onClick={() => onPokemonClick(p.id)}
                 background={isSelected ? 'accent' : 'pokemonTertiary'}
                 type="button"
               >

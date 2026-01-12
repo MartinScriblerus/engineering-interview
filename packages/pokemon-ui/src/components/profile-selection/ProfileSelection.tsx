@@ -1,221 +1,313 @@
 import styled from '@emotion/styled';
 import { Container, Section, Panel, Typography, Button, Stack, Header, Form, InputFormField, FormProps } from 'ui';
 import React, { useEffect, useRef, useState } from 'react';
-import { createProfile, getProfiles, getAllTeams } from '../../utils/api';
+import { createProfile, getProfiles, getAllTeams, recordTeamSelection, recordProfileSelection } from '../../utils/api';
 import { useMainContext } from '../../contexts/MainContext';
 import { useNavigate } from 'react-router-dom';
 import { Profile } from '../../app/providers';
-
+import { setProfileContext } from '../../utils/profileContext';
+import axios from 'axios';
 
 export const ProfileSelection = () => {
+  const { tryGetTeamsSelection, setSelectedPortfolio, setSelectedTeam, teams, setTeams } = useMainContext();
+  const navigate = useNavigate();
 
-    const { tryGetTeamsSelection, setSelectedPortfolio } = useMainContext();
-    
-    const navigate = useNavigate();
-    
-    const [profiles, setProfiles] = useState<any[]>([]);
-    const [teams, setTeams] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const formRef = useRef<HTMLFormElement | null>(null);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
-    const StyledContainer = styled(Container)`
-        height: 100%;
-        max-height: 100%;
-    `;
+  const StyledContainer = styled(Container)`
+    height: 100%;
+    max-height: 100%;
+  `;
 
-    useEffect(() => {
-        getProfiles().then(res => setProfiles(res.data ?? []));
-        getAllTeams().then(res => setTeams(res.data ?? []));
-    }, []);
+  // Compact cross icon + button styles for dismiss control
+  const CrossIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden focusable="false" role="img">
+      <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
-    const selectProfile = (profileId: string, profile: Profile) => {
-        setSelectedPortfolio(profileId);
-        tryGetTeamsSelection(profile.name ?? '', 'selected', profileId);
-        navigate('/teams', { 
-            state: { 
-                selectedProfileName: profile?.name ?? '', 
-                selectedProfileId: profileId,
-                selectedTeamId: null, 
-            }});
-    };
+  const StyledCloseButton = styled(Button)`
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    line-height: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    border: none;
 
-    const validate: NonNullable<FormProps['validate']> = (values) => {
-        const errors: Record<string, string | undefined> = {};
-        if (!values.create_profile || String(values.create_profile).trim() === '') {
-            errors.create_profile = 'Profile name is required';
-        }
-        return errors;
-    };
+    &:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    &:active {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    &:focus {
+      outline: 2px solid rgba(0, 0, 0, 0.12);
+      outline-offset: 2px;
+    }
 
-    const handleSubmitValues: NonNullable<FormProps['onSubmitValues']> = async (values, evt) => {
+    & > svg {
+      width: 12px;
+      height: 12px;
+      display: block;
+    }
+  `;
+
+  const StyledCloseRow = styled(Stack)`
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 4px;
+  `;
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [profilesRes, teamsRes] = await Promise.all([getProfiles(), getAllTeams()]);
+        setProfiles(profilesRes.data ?? []);
+        setTeams(teamsRes.data ?? []);
+      } catch (err) {
+        console.warn('Failed to load profiles or teams', err);
+        setProfiles([]);
+        setTeams([]);
+      }
+    })();
+  }, [setTeams]);
+
+  const selectProfile = (profileId: string, profile: Profile) => {
+    setSelectedPortfolio(profileId);
+    tryGetTeamsSelection(profile.name ?? '', 'selected', profileId);
+    navigate('/teams', {
+      state: {
+        selectedProfileName: profile?.name ?? '',
+        selectedProfileId: profileId,
+        selectedTeamId: null,
+      },
+    });
+  };
+
+  const validate: NonNullable<FormProps['validate']> = (values) => {
+    const errors: Record<string, string | undefined> = {};
+    if (!values.create_profile || String(values.create_profile).trim() === '') {
+      errors.create_profile = 'Profile name is required';
+    }
+    return errors;
+  };
+
+  const handleSubmitValues: NonNullable<FormProps['onSubmitValues']> = async (values) => {
+    setErrorMsg(null);
+    try {
+      setLoading(true);
+
+      const chosenName = String(values.create_profile ?? '').trim();
+      if (!chosenName) {
+        setErrorMsg('Please enter a profile name');
+        return;
+      }
+
+      const res = await createProfile({ name: chosenName });
+      const payload = res.data ?? {};
+      // Support older backend shape (profile) or new shape { profile, token }
+      const created = payload.profile ?? payload;
+      const token = payload.token;
+
+      // Persist lightweight profile context + token for visitor flows (best-effort)
+      if (token && created?.id) {
         try {
-            setLoading(true);
-
-            const chosenName = String(values.create_profile ?? '').trim();
-            if (!chosenName) {
-                console.warn('Please enter a profile name');
-                return;
-            }
-
-            const res = await createProfile({ name: chosenName });
-            const created = res.data;
-            setProfiles(prev => [created, ...prev]);
-            formRef.current?.reset();
-
-            setSelectedPortfolio(created.id);
-            tryGetTeamsSelection(created.name ?? "", 'created', created.id);
-            navigate('/teams', { 
-                state: { 
-                    selectedProfileName: created.name, 
-                    selectedProfileId: created.id,
-                    selectedTeamId: null, 
-                }});
+          setProfileContext({
+            profile: { id: created.id, name: created.name, createdAt: created.createdAt },
+            token,
+          });
         } catch (err) {
-            console.error('create profile failed', err);
-        } finally {
-            setLoading(false);
+          console.warn('setProfileContext failed', err);
         }
-    };
+      }
 
-    const handleSubmitEvent: FormProps['onSubmit'] = (evt) => {
-        console.log('form submit event', evt);
-    };
+      setProfiles((prev) => [created, ...prev]);
+      formRef.current?.reset();
 
-    return (
-        <StyledContainer>
-            <Section>                     
-                <Panel
-                    background="pokemonPrimary"
-                    rounded={false}
-                >
-                    <Header 
-                        sticky="sticky" 
-                        position="top"
-                        background="pokemonPrimary"
-                    >
-                        <Typography 
-                            as="h2"
-                            weight="bold"
-                            uppercase 
-                            color="pokemonSecondary"
-                        >
-                            Create Profile
-                        </Typography>
-                    </Header>
-                    <Stack>
-                        <Form
-                            ref={formRef}
-                            onSubmit={handleSubmitEvent}
-                            onSubmitValues={handleSubmitValues}
-                            validate={validate}
-                            validateOn="submit"
-                            preventDefault={true}
-                            className="signup-form"
-                            action="/legacy-endpoint"
-                            method="post"
-                        >
-                            <InputFormField
-                                name="create_profile"
-                                label="Create profile"
-                                placeholder="ex. Steven_Stone123"
-                            />
+      setSelectedPortfolio(created.id);
+      tryGetTeamsSelection(created.name ?? '', 'created', created.id);
+      navigate('/teams', {
+        state: {
+          selectedProfileName: created.name,
+          selectedProfileId: created.id,
+          selectedTeamId: null,
+        },
+      });
+    } catch (err: any) {
+      // Axios HTTP error handling: show server-provided message when available.
+      if (axios.isAxiosError(err)) {
+        const serverMsg = err.response?.data?.message ?? err.response?.data ?? err.message;
+        if (err.response?.status === 409) {
+          setErrorMsg(typeof serverMsg === 'string' ? serverMsg : 'Profile name already exists');
+        } else {
+          setErrorMsg(typeof serverMsg === 'string' ? serverMsg : 'Could not create profile');
+        }
+      } else {
+        setErrorMsg(String(err));
+      }
+      console.error('create profile failed', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                            <Button 
-                                type="submit"
-                                background='heroBg'
-                            >Create Profile</Button>
+  const handleSubmitEvent: FormProps['onSubmit'] = (evt) => {
+    console.log('form submit event', evt);
+  };
 
-                            <Button
-                                onClick={() => formRef.current?.reset()}
-                                type="button"
-                                background='pokemonTertiary'
-                            >
-                                Reset
-                            </Button>
-                            </div>
-                        </Form>
-                    </Stack>
-                </Panel>
+  const onTeamClick = async (team: any) => {
+    const teamId = team.id;
+    // 1) update UI selection immediately
+    setSelectedTeam(teamId);
 
-                <Panel
-                    background="pokemonSecondary"
-                    rounded={false}
-                >
-                    <Header 
-                        sticky="sticky" 
-                        position="top"
-                        background="pokemonSecondary"
-                    >
-                        <Typography
-                            as="h2"
-                            weight="bold"
-                            uppercase 
-                            color="pokemonPrimary"
-                        >
-                            Select Profile
-                        </Typography>
-                    </Header>
-                    <Stack
-                        direction="column"
-                        spacing="4px"
-                        scroll="vertical"
-                        maxHeight={154}
-                        paddingTop={12}
-                    >
-                        {profiles.map(p => <Button 
-                            key={`select_profile_${p.id}`}
-                            onClick={() => selectProfile(p.id, p)}
-                            background='heroBg'
-                        >{p.name}</Button>)}
-                    </Stack>
-                </Panel>
-            </Section>
+    // 2) record the explicit user selection (do this before navigation to avoid other effects causing duplicates)
+    try {
+      await recordTeamSelection(teamId);
+    } catch (err) {
+      console.warn('failed to record selection', err);
+      // continue — recording failure should not block navigation
+    }
 
-            {/* Fullscreen area: All available teams as clickable buttons (layout like PokemonSelector) */}
-            <Section>
-                <Panel
-                    background="pokemonTertiary"
-                    rounded={false}
-                >
-                    <Stack
-                        direction="column"
-                    >
-                        <Header sticky="sticky" position="top" background="pokemonTertiary">
-                            <Typography as="h2" weight="bold" uppercase color="pokemonPrimary">
-                                All Available Teams
-                            </Typography>
-                        </Header>
+    // 3) navigate and pass a flag so receiving components know this was an explicit click
+    navigate('/teams', {
+      state: {
+        selectedProfileName: team?.profile?.name ?? '',
+        selectedProfileId: team?.profile?.id ?? '',
+        selectedTeamId: teamId,
+        recordSelection: false, // explicit flag: don't auto-record again
+      },
+    });
+  };
 
-                        {/* Scrollable wrapping buttons layout, similar to PokemonSelector */}
-                        <Stack background="surface" direction="column" spacing="4px" scroll="vertical" maxHeight={260} paddingTop={12}>
-                          <div style={{ padding:16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            {teams.map((t) => {
-                              const profileName = t?.profile?.name ?? '—';
-                              return (
-                                <Button
-                                  key={t.id}
-                                  onClick={() =>
-                                    navigate('/teams', {
-                                      state: {
-                                        selectedProfileName: profileName,
-                                        selectedProfileId: t?.profile?.id ?? '',
-                                        selectedTeamId: t.id,
-                                      },
-                                    })
-                                  }
-                                  background="pokemonSecondary"
-                                  type="button"
-                                >
-                                  {t.name}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </Stack>
-                    </Stack>
-                </Panel>
-            </Section>
-        </StyledContainer>
-    )
+  const onProfileClick = async (profileId: string, profile: Profile) => {
+    // 1) UI update
+    setSelectedPortfolio(profileId);
+
+    // 2) record explicit user selection (best-effort)
+    try {
+      await recordProfileSelection(profileId);
+    } catch (err) {
+      console.warn('recordProfileSelection failed', err);
+    }
+
+    // 3) navigate, include recordSelection flag to avoid downstream auto-record
+    tryGetTeamsSelection(profile.name ?? '', 'selected', profileId);
+    navigate('/teams', {
+      state: {
+        selectedProfileName: profile?.name ?? '',
+        selectedProfileId: profileId,
+        selectedTeamId: null,
+        recordSelection: false,
+      },
+    });
+  };
+
+  // Sorted lists for presentation
+  const sortedProfiles = [...profiles].sort((a, b) => (String(a?.name ?? '')).localeCompare(String(b?.name ?? '')));
+  const sortedAllTeams = [...(teams ?? [])].sort((a: any, b: any) => (String(a?.name ?? '')).localeCompare(String(b?.name ?? '')));
+
+  return (
+    <StyledContainer>
+      <Section>
+        <Panel background="pokemonPrimary" rounded={false}>
+          <Header sticky="sticky" position="top" background="pokemonPrimary">
+            <Typography as="h2" weight="bold" uppercase color="pokemonSecondary">
+              Create Profile
+            </Typography>
+          </Header>
+          <Stack>
+            {errorMsg && (
+              <Panel background='pokemonTertiary'>
+                <StyledCloseRow direction="row-reverse">
+                  <StyledCloseButton onClick={() => setErrorMsg(null)} type="button" aria-label="Dismiss error">
+                    <CrossIcon />
+                  </StyledCloseButton>
+                </StyledCloseRow>
+                <Typography as="div" color="danger">
+                  {errorMsg}
+                </Typography>
+              </Panel>
+            )}
+            <Form
+              ref={formRef}
+              onSubmit={handleSubmitEvent}
+              onSubmitValues={handleSubmitValues}
+              validate={validate}
+              validateOn="submit"
+              preventDefault={true}
+              className="signup-form"
+              action="/legacy-endpoint"
+              method="post"
+            >
+              <InputFormField name="create_profile" label="Create profile" placeholder="ex. Steven_Stone123" />
+
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                <Button type="submit" background="heroBg" disabled={loading}>
+                  Create Profile
+                </Button>
+
+                <Button onClick={() => formRef.current?.reset()} type="button" background="pokemonTertiary">
+                  Reset
+                </Button>
+              </div>
+            </Form>
+          </Stack>
+        </Panel>
+
+        <Panel background="pokemonSecondary" rounded={false}>
+          <Header sticky="sticky" position="top" background="pokemonSecondary">
+            <Typography as="h2" weight="bold" uppercase color="pokemonPrimary">
+              Select Profile
+            </Typography>
+          </Header>
+          <Stack direction="column" spacing="4px" scroll="vertical" maxHeight={154} paddingTop={12}>
+            {sortedProfiles.map((p) => (
+              <Button key={`select_profile_${p.id}`} onClick={() => onProfileClick(p.id, p)} background="heroBg">
+                {p.name}
+              </Button>
+            ))}
+          </Stack>
+        </Panel>
+      </Section>
+
+      {/* Fullscreen area: All available teams as clickable buttons (layout like PokemonSelector) */}
+      <Section>
+        <Panel background="pokemonTertiary" rounded={false}>
+          <Stack direction="column">
+            <Header sticky="sticky" position="top" background="pokemonTertiary">
+              <Typography as="h2" weight="bold" uppercase color="pokemonPrimary">
+                All Available Teams
+              </Typography>
+            </Header>
+
+            {/* Scrollable wrapping buttons layout, similar to PokemonSelector */}
+            <Stack background="surface" direction="column" spacing="4px" scroll="vertical" maxHeight={260} paddingTop={12}>
+              <div style={{ padding: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {sortedAllTeams.map((t: any) => {
+                  return (
+                    <Button key={t.id} onClick={() => onTeamClick(t)} background="pokemonSecondary" type="button">
+                      {t.name}
+                    </Button>
+                  );
+                })}
+              </div>
+            </Stack>
+          </Stack>
+        </Panel>
+      </Section>
+    </StyledContainer>
+  );
 };

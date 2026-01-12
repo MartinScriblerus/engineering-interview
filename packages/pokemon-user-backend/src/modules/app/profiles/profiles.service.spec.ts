@@ -11,6 +11,7 @@ describe('ProfilesService', () => {
     mockRepo = {
       find: vi.fn().mockResolvedValue([{ id: 'p1', username: 'ash', createdTeams: [] }]),
       findOne: vi.fn().mockResolvedValue({ id: 'p1', createdTeams: [{ id: 't1', name: 'Team A', teamPokemons: [] }] }),
+      increment: vi.fn().mockResolvedValue({}),
     };
 
     mockCache = {
@@ -57,5 +58,19 @@ describe('ProfilesService', () => {
     const res = await service.getTeams('p1');
     expect(res.length).toBeGreaterThanOrEqual(1);
     expect(mockRepo.findOne).toHaveBeenCalled();
+  });
+
+    it('increments selectedCount for a valid profile', async () => {
+    const ok = await service.recordProfileSelection('p1');
+    expect(ok).toBe(true);
+    expect(mockRepo.findOne).toHaveBeenCalledWith({ where: { id: 'p1' } });
+    expect(mockRepo.increment).toHaveBeenCalledWith({ id: 'p1' }, 'selectedCount', 1);
+  });
+
+  it('returns false for missing profile', async () => {
+    mockRepo.findOne = vi.fn().mockResolvedValue(null);
+    const ok = await service.recordProfileSelection('missing');
+    expect(ok).toBe(false);
+    expect(mockRepo.increment).not.toHaveBeenCalled();
   });
 });

@@ -2,61 +2,98 @@
 ## Design Decisions Documentation
 
 ### Module / Folder Structure
-
-pokemon-user-backend/
+```
+packages/pokemon-user-backend/
 ├── .env
 ├── data/
-│ └── pokemon.gen1.json
+│   └── pokemon.gen1.json
 ├── docs/
-│ └── DESIGN_DECISIONS.md
+│   └── DESIGN_DECISIONS.md
 ├── project.json
 ├── scripts/
-│ └── fetch-pokemon.gen1.js
-├── src/
-│ ├── main.spec.ts
-│ ├── main.ts
-│ └── modules/
-│ ├── app/
-│ │ ├── app.module.ts
-│ │ ├── pokemon/
-│ │ │ ├── pokemon.controller.ts
-│ │ │ ├── pokemon.module.ts
-│ │ │ └── pokemon.service.ts
-│ │ ├── profiles/
-│ │ │ ├── profiles.controller.ts
-│ │ │ ├── profiles.module.ts
-│ │ │ └── profiles.service.ts
-│ │ ├── team-pokemons/
-│ │ │ ├── team-pokemons.controller.ts
-│ │ │ ├── team-pokemons.module.ts
-│ │ │ └── team-pokemons.service.ts
-│ │ └── teams/
-│ │ ├── teams.controller.ts
-│ │ ├── teams.module.ts
-│ │ └── teams.service.ts
-│ ├── cache/
-│ │ ├── cache.module.ts
-│ │ ├── cache.service.ts
-│ │ └── index.ts
-│ └── database/
-│ ├── data-source.ts
-│ ├── db-config.service.ts
-│ ├── db.module.ts
-│ ├── db.ts
-│ ├── seed-pokemon.ts
-│ ├── entities/
-│ │ ├── pokemon.entity.ts
-│ │ ├── profile.entity.ts
-│ │ ├── team-pokemon.entity.ts
-│ │ └── team.entity.ts
-│ └── migrations/
-│ ├── 1768003635229-AddTeamsAndTeamPokemon.ts
-│ └── 1768080422974-AddPopularityAndTimestamps.ts
+│   └── fetch-pokemon.gen1.js
+└── src/
+    ├── main.spec.ts
+    ├── main.ts
+    └── modules/
+        ├── app/
+        │   ├── app.module.ts
+        │   ├── pokemon/
+        │   │   ├── pokemon.controller.spec.ts
+        │   │   ├── pokemon.controller.ts
+        │   │   ├── pokemon.module.ts
+        │   │   ├── pokemon.service.spec.ts
+        │   │   └── pokemon.service.ts
+        │   ├── profiles/
+        │   │   ├── profiles.controller.spec.ts
+        │   │   ├── profiles.controller.ts
+        │   │   ├── profiles.module.ts
+        │   │   ├── profiles.service.spec.ts
+        │   │   └── profiles.service.ts
+        │   ├── team-pokemons/
+        │   │   ├── team-pokemons.controller.ts
+        │   │   ├── team-pokemons.module.ts
+        │   │   └── team-pokemons.service.ts
+        │   └── teams/
+        │       ├── dto/
+        │       │   ├── create-team.dto.ts
+        │       │   └── update-team.dto.ts
+        │       ├── team.controller.spec.ts
+        │       ├── teams.controller.ts
+        │       ├── teams.module.ts
+        │       ├── teams.service.spec.ts
+        │       └── teams.service.ts
+        ├── cache/
+        │   ├── cache.module.ts
+        │   ├── cache.service.spec.ts
+        │   ├── cache.service.ts
+        │   └── index.ts
+        └── database/
+            ├── data-source.ts
+            ├── db-config.service.ts
+            ├── db.ts
+            ├── seed-pokemon.ts
+            ├── entities/
+            │   ├── pokemon.entity.ts
+            │   ├── profile.entity.ts
+            │   ├── team-pokemon.entity.ts
+            │   └── team.entity.ts
+            └── migrations/
+                ├── 1768003635229-AddTeamsAndTeamPokemon.ts
+                └── 1768080422974-AddPopularityAndTimestamps.ts
+```
 
+## API OVERVIEW
+- Profiles: ephemeral user identifiers, own Teams, support CRUD.
+- Teams: encapsulate Pokémon groupings, enforce selection constraints.
+- Pokémon: immutable reference data; selection handled via join table.
+- Selection endpoints (/select) separate state mutation from user intent.
+- Cache module maintains ephemeral Teams and Profiles using TTL (2h) and LFU for top-N public entries.
+- Cache ensures rapid retrieval of popular data and enforces automatic cleanup of expired Teams.
+
+Profiles
+├─ GET    /api/profiles
+├─ POST   /api/profiles
+├─ DELETE /api/profiles/{profileId}
+├─ GET    /api/profiles/{profileId}/teams
+└─ POST   /api/profiles/{profileId}/select
+
+Teams
+├─ GET    /api/teams
+├─ POST   /api/teams
+├─ GET    /api/teams/{teamId}
+├─ PATCH  /api/teams/{teamId}
+├─ DELETE /api/teams/{teamId}
+├─ GET    /api/teams/{teamId}/pokemon-names
+└─ POST   /api/teams/{teamId}/select
+
+Pokémon
+├─ GET    /api/pokemon
+└─ POST   /api/pokemon/{pokemonId}/select
 
 ## DATABASE DESIGN DECISIONS (updated)
 
-- Profiles create Teams (1-to-many). Each Team belongs to exactly one creator Profile.
+- Profiles create Teams (1-to-many). Each Team belongs to exactly one Profile.
 
 - Teams group Pokémon. Pokémon can appear on multiple Teams. This is modeled with an explicit join table team_pokemon.
 
@@ -91,7 +128,7 @@ Professor Rowan (persistent)
     ├── Charmander
     └── Pikachu
 
-- team_pokemon table ensures (teamId, pokemonId) is unique.
+- team_pokemon table ensures (teamId, pokemonId) is unique via a unique composite key constraint.
 
 - A Pokémon can appear in multiple Teams, but cannot be duplicated within the same Team.
 

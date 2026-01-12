@@ -7,7 +7,8 @@ import { PinoLogger } from 'nestjs-pino';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { ProfileEntity } from '../../database/entities/profile.entity';
 import { TeamPokemonEntity } from '../../database/entities/team-pokemon.entity';
-
+import { PokemonEntity } from '../../database/entities/pokemon.entity';
+import { verifyToken } from '../../../utils/profileToken'
 @Injectable()
 export class TeamsService {
   constructor(
@@ -57,6 +58,61 @@ export class TeamsService {
     return team;
   }
 
+  /**
+   * Record a team selection event:
+   * - Increments team.selectedCount (atomic)
+   * - Increments selectedCount on each Pokemon that belongs to the team
+   *
+   * Returns:
+   * - true: selection recorded
+   * - false: invalid input or failure to record
+   *
+   * Notes:
+   * - Does not throw for invalid teamId; logs errors and returns false on error.
+   */
+  async recordTeamSelection(teamId: string): Promise<boolean> {
+    if (!teamId) return false;
+
+    try {
+      const team = await this.teamRepo.findOne({
+        where: { id: teamId },
+        relations: ['teamPokemons', 'teamPokemons.pokemon'],
+      });
+
+      if (!team) {
+        // invalid selection — do not throw, just return false
+        return false;
+      }
+
+      // Atomically increment the team's selectedCount
+      await this.teamRepo.increment({ id: teamId }, 'selectedCount', 1);
+
+      // Increment each pokemon's selectedCount (if any)
+      const pokemonIds = (team.teamPokemons ?? [])
+        .map((tp) => tp.pokemon?.id)
+        .filter(Boolean) as string[];
+
+      if (pokemonIds.length > 0) {
+        // Use the teamRepo.manager to get a Pokemon repository dynamically
+        const pokemonRepo = this.teamRepo.manager.getRepository(PokemonEntity);
+        await Promise.all(
+          pokemonIds.map((pid) => pokemonRepo.increment({ id: pid }, 'selectedCount', 1))
+        );
+      }
+
+      return true;
+    } catch (err) {
+      // Log and return false — do not bubble errors to callers
+      try {
+        this.logger.error({ err, teamId }, 'recordTeamSelection failed');
+      } catch (e) {
+        // swallow logger errors
+        // eslint-disable-next-line no-console
+        console.error('recordTeamSelection error', err);
+      }
+      return false;
+    }
+  }
 
   async createTeam(dto: CreateTeamDto): Promise<TeamEntity> {
     // Defensive server-side enforcement: reject >6 pokemon even if the client sends them.

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Container, Section, Panel, Typography, Spacer, Grid } from 'ui';
+import { Container, Section, Panel, Typography, Grid } from 'ui';
 // import { theme } from '../../theme'
 
 import React from 'react';
